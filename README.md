@@ -48,9 +48,9 @@ The backend is implemented with FastAPI and provides endpoints for repository up
 
 Uploaded repositories are processed through the following pipeline:
 
-````text
+```text
 ZIP → File filtering → Repository parsing → Code chunking → Embeddings → ChromaDB
-
+```
 ## 4. Project Structure
 
 The project is organized into separate frontend and backend applications.
@@ -110,7 +110,7 @@ codecompass-ai/
 │
 ├── .gitignore
 └── README.md
-
+```
 ## 5. Setup and Installation
 
 ### Prerequisites
@@ -154,7 +154,7 @@ Open another terminal:
 cd frontend
 npm install
 npm run dev
-
+```
 Vite will display the frontend development URL in the terminal.
 Using the application
 Once both services are running:
@@ -201,7 +201,7 @@ Prompt construction
 Groq LLM
     ↓
 Answer + Sources
-
+```
 6.1 Repository ingestion
 When a repository ZIP file is uploaded, it is extracted and processed by the repository ingestion pipeline.
 The parser recursively searches the extracted repository and processes supported text and source files.
@@ -243,10 +243,12 @@ Why character-based chunking?
 A character-based strategy was chosen for the initial implementation because it is simple, predictable, and works across multiple programming languages without requiring a different parser for each language.
 However, it does not understand programming-language structure. A function or class can therefore be split across chunks.
 A future version could use syntax-aware or AST-based chunking so that functions, classes, and other logical code units are kept together.
+
 6.3 Embedding model
 The application uses:
+``` text
 sentence-transformers/all-MiniLM-L6-v2
-
+```
 for both document and query embeddings.
 Repository chunks are embedded during indexing, while the user's question is embedded during retrieval.
 The embeddings are normalized before being stored or queried.
@@ -255,13 +257,15 @@ A future implementation could evaluate code-specific embedding models against a 
 6.4 Vector store
 ChromaDB is used as the vector database.
 Each stored chunk includes metadata such as:
+```text
 project_id
 file_path
 language
 chunk_index
-
+```
 The actual chunk content and its embedding are also stored.
 The project_id is particularly important because it allows retrieval to be restricted to the repository associated with the current question.
+```text
 For example:
 Query for Project A
         ↓
@@ -270,7 +274,7 @@ ChromaDB
 project_id = Project A
         ↓
 Relevant chunks from Project A only
-
+```
 This prevents chunks from different uploaded repositories from being mixed during retrieval.
 6.5 Retrieval strategy
 When a question is submitted, the system:
@@ -280,13 +284,15 @@ Filters the search using the current project_id.
 Returns the top relevant chunks.
 Uses those chunks as context for the LLM.
 The current default retrieval value is:
+```text
 top_k = 5
-
+```
 The retrieval service returns the retrieved content together with metadata such as file path, language, project ID, chunk index, and distance.
 6.6 Conversational retrieval
 The query API accepts previous conversation messages.
 The backend keeps the most recent six messages and combines them with the current question when constructing the retrieval query.
 Conceptually:
+```text
 Previous conversation
         +
 Current question
@@ -294,7 +300,7 @@ Current question
 Retrieval query
         ↓
 Semantic search
-
+```
 This allows follow-up questions to use the context of the previous conversation instead of treating every question as completely independent.
 The current implementation intentionally limits the conversation history to avoid continuously increasing the amount of context sent through the retrieval pipeline.
 6.7 Prompt construction
@@ -303,15 +309,17 @@ The context contains information such as:
 File: path/to/file.py
 Language: python
 Content:
+```text
 <retrieved code>
-
+```
 Multiple retrieved chunks are separated before being passed to the prompt builder.
 The final prompt contains the user's current question together with the retrieved repository context.
 6.8 LLM
 The application uses the Groq API for answer generation.
 The default model configured by the backend is:
+```text
 llama-3.1-8b-instant
-
+```
 The LLM is given the retrieved repository context rather than the complete repository.
 The generation temperature is currently set to:
 0.1
@@ -377,7 +385,7 @@ File: <file path>
 Language: <language>
 Content:
 <retrieved code>
-
+```
 Multiple retrieved chunks are separated before being passed to the prompt builder.
 This gives the LLM information about both the content and its location within the repository.
 Separation of retrieval and generation
@@ -410,7 +418,7 @@ retrieval_query
 while the prompt builder receives:
 question
 context
-
+```
 ## 8. Guardrails and Quality Controls
 
 The current implementation includes several basic validation and isolation mechanisms to improve reliability and prevent common errors.
@@ -444,7 +452,7 @@ ChromaDB search
 project_id filter
    ↓
 Relevant chunks from the selected repository
-
+```
 This prevents retrieval results from being mixed between different uploaded repositories.
 The behavior is covered by an automated test:
 test_retrieval_is_isolated_by_project
@@ -474,18 +482,12 @@ rate limiting
 malicious repository scanning
 These would be important additions for a production deployment.
 
-### Why this section matters
-
-This is actually a good section for your assignment because we're showing that **you thought about reliability**, while being honest about what is and isn't implemented.
-
-And we have evidence for the project-isolation part because you already ran:
-
 ```text
 test_retrieval_is_isolated_by_project PASSED
 
 and the full suite is:
 12 passed, 1 warning
-
+```
 ## 9. Testing
 
 The backend includes automated tests using `pytest`. The tests focus on the main stages of the application: repository parsing, code chunking, retrieval, API behavior, and project isolation.
@@ -509,7 +511,7 @@ Different chunks receiving different identifiers
 Creation of overlapping chunks for large files
 Rejection of invalid overlap configuration
 tests/test_chunker.py
-
+```
 Health endpoint
 The FastAPI health endpoint is tested to verify that the backend is responding correctly.
 tests/test_health.py
@@ -594,7 +596,7 @@ project_id
 file_path
 language
 chunk_index
-````
+```
 
 This allows retrieval to be restricted to a specific repository.
 
@@ -731,7 +733,7 @@ The Groq API key is loaded from an environment variable:
 
 ````text
 GROQ_API_KEY
-
+````
 The actual .env file is excluded from version control. A .env.example file is provided so that the required configuration is clear without exposing the secret.
 Testing
 The backend includes automated tests for the main application components.
@@ -1052,11 +1054,7 @@ Inspect errors or unexpected behavior
 Fix and refine
         ↓
 Run regression tests
-
-
-### Step 15 — What I Would Do Differently
-
-```markdown
+````
 ## 15. What I Would Do Differently
 
 With more development time, I would focus first on improving retrieval quality and production reliability.
@@ -1113,12 +1111,7 @@ Semantic retrieval
 Groq LLM
       ↓
 Answer + Sources
-
-
-### Finally — Author & Copyright
-
-Put this **after Section 16**:
-
+```
 ## Author
 
 **Degefom Kahsay Berhe**
@@ -1131,6 +1124,3 @@ Copyright © 2026 Degefom Kahsay Berhe. All rights reserved.
 
 This repository is provided for evaluation and demonstration purposes. No license is granted for redistribution, modification, or commercial use unless explicitly stated by the author.
 
-
-
-````
