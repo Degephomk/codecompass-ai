@@ -202,7 +202,7 @@ Groq LLM
     ↓
 Answer + Sources
 ```
-6.1 Repository ingestion
+### 6.1 Repository ingestion
 When a repository ZIP file is uploaded, it is extracted and processed by the repository ingestion pipeline.
 The parser recursively searches the extracted repository and processes supported text and source files.
 The implementation currently recognizes common programming languages and formats including:
@@ -227,7 +227,7 @@ TOML
 XML
 Plain text
 Unsupported files and ignored paths are skipped during ingestion.
-6.2 Chunking strategy
+### 6.2 Chunking strategy
 Large repository files are split into overlapping chunks.
 The current configuration is:
 Chunk size: 1200 characters
@@ -244,7 +244,7 @@ A character-based strategy was chosen for the initial implementation because it 
 However, it does not understand programming-language structure. A function or class can therefore be split across chunks.
 A future version could use syntax-aware or AST-based chunking so that functions, classes, and other logical code units are kept together.
 
-6.3 Embedding model
+### 6.3 Embedding model
 The application uses:
 ``` text
 sentence-transformers/all-MiniLM-L6-v2
@@ -254,7 +254,7 @@ Repository chunks are embedded during indexing, while the user's question is emb
 The embeddings are normalized before being stored or queried.
 The model was selected because it is lightweight, easy to run locally, and provides a practical balance between retrieval quality and computational cost for an MVP.
 A future implementation could evaluate code-specific embedding models against a repository-question benchmark to determine whether they provide better retrieval performance.
-6.4 Vector store
+### 6.4 Vector store
 ChromaDB is used as the vector database.
 Each stored chunk includes metadata such as:
 ```text
@@ -276,7 +276,7 @@ project_id = Project A
 Relevant chunks from Project A only
 ```
 This prevents chunks from different uploaded repositories from being mixed during retrieval.
-6.5 Retrieval strategy
+### 6.5 Retrieval strategy
 When a question is submitted, the system:
 Creates an embedding for the question.
 Searches ChromaDB for semantically similar chunks.
@@ -288,7 +288,7 @@ The current default retrieval value is:
 top_k = 5
 ```
 The retrieval service returns the retrieved content together with metadata such as file path, language, project ID, chunk index, and distance.
-6.6 Conversational retrieval
+### 6.6 Conversational retrieval
 The query API accepts previous conversation messages.
 The backend keeps the most recent six messages and combines them with the current question when constructing the retrieval query.
 Conceptually:
@@ -303,7 +303,7 @@ Semantic search
 ```
 This allows follow-up questions to use the context of the previous conversation instead of treating every question as completely independent.
 The current implementation intentionally limits the conversation history to avoid continuously increasing the amount of context sent through the retrieval pipeline.
-6.7 Prompt construction
+### 6.7 Prompt construction
 After retrieval, the selected chunks are formatted with their repository metadata.
 The context contains information such as:
 File: path/to/file.py
@@ -314,7 +314,7 @@ Content:
 ```
 Multiple retrieved chunks are separated before being passed to the prompt builder.
 The final prompt contains the user's current question together with the retrieved repository context.
-6.8 LLM
+### 6.8 LLM
 The application uses the Groq API for answer generation.
 The default model configured by the backend is:
 ```text
@@ -325,7 +325,7 @@ The generation temperature is currently set to:
 0.1
 
 A low temperature was chosen because repository questions generally benefit from more consistent and less creative responses.
-6.9 Source attribution
+### 6.9 Source attribution
 The API response includes the files associated with the retrieved chunks.
 Each source contains:
 file_path
@@ -334,7 +334,7 @@ distance
 
 The frontend displays these sources below the generated answer.
 This provides the user with a direct indication of which repository files contributed to the retrieved context.
-6.10 Current RAG limitations
+### 6.10 Current RAG limitations
 The current RAG implementation is intentionally simple.
 It does not currently include:
 syntax-aware chunking
