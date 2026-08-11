@@ -34,6 +34,12 @@ CodeCompass AI follows a Retrieval-Augmented Generation (RAG) architecture. The 
 
 ![CodeCompass AI Architecture](docs/images/architecture.png)
 
+### Example interaction
+
+![CodeCompass AI question and answer](docs/images/question-answer.png)
+
+The interface allows users to ask questions about an uploaded repository and displays the generated answer together with the source files retrieved from the codebase.
+
 ### Main components
 
 #### Frontend
